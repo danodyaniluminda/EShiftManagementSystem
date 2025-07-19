@@ -1,0 +1,58 @@
+{
+  "Customers": [
+    {
+      "CustomerId": 1,
+      "CustomerNumber": "CUST000002",
+      "FirstName": "Danodya",
+      "LastName": "Senewirathne",
+      "Email": "d.niluminda@gmail.com",
+      "Phone": "0776340769",
+      "Address": "372/3/1, Elpitiya",
+      "RegistrationDate": "2025-07-04T19:44:27.7707692+05:30"
+    }
+  ],
+  "TransportUnits": [
+    {
+      "TransportUnitId": 1,
+      "LorryNumber": "NA-3492",
+      "DriverName": "Anuruddika",
+      "DriverLicense": "Anuruddika",
+      "AssistantName": "Janith",
+      "ContainerType": "Small",
+      "Capacity": 100.0,
+      "IsAvailable": false
+    }
+  ],
+  "Jobs": [
+    {
+      "JobId": 1,
+      "JobNumber": "JOB000002",
+      "CustomerId": 1,
+      "StartLocation": "Elpitiya",
+      "Destination": "Colombo",
+      "RequestDate": "2025-07-04T19:45:38.4428484+05:30",
+      "ScheduledDate": "2025-07-04T19:44:34.6805675+05:30",
+      "CompletedDate": null,
+      "Status": "InProgress",
+      "TotalCost": 0.0,
+      "Loads": []
+    }
+  ],
+  "Loads": [
+    {
+      "LoadId": 1,
+      "LoadNumber": "LOAD000002",
+      "Description": "Danodya",
+      "Weight": 0.0,
+      "Volume": 0.0,
+      "PackageType": "Electronics",
+      "JobId": 1,
+      "TransportUnitId": 1,
+      "CreatedDate": "2025-07-04T19:46:04.3792103+05:30"
+    }
+  ],
+  "NextCustomerId": 2,
+  "NextJobId": 2,
+  "NextLoadId": 2,
+  "NextTransportUnitId": 2
+}

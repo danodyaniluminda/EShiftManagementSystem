@@ -36,7 +36,7 @@ namespace EShiftManagementSystem
 
         private void SetupCustomControls()
         {
-            this.Text = "e-Shift - User Login";
+            this.Text = "e-Shift - Customer Login";
             this.Size = new Size(900, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
@@ -122,11 +122,11 @@ namespace EShiftManagementSystem
             // Title
             var lblTitle = new Label
             {
-                Text = "User Portal",
+                Text = "Customer Portal",
                 Font = new Font("Segoe UI", 32, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(110, 220),
-                Size = new Size(180, 50),
+                Location = new Point(60, 220),
+                Size = new Size(300, 60),
                 TextAlign = ContentAlignment.MiddleCenter
             };
 
@@ -160,12 +160,11 @@ namespace EShiftManagementSystem
             // Login title
             var lblLoginTitle = new Label
             {
-                Text = "User Sign In",
+                Text = "Customer Sign In",
                 Font = new Font("Segoe UI", 28, FontStyle.Bold),
                 ForeColor = Color.FromArgb(31, 41, 55),
-                Location = new Point(60, 80),
-                Size = new Size(300, 40),
-                TextAlign = ContentAlignment.MiddleLeft
+                Location = new Point(60, 60),
+                AutoSize = true // Ensure full text shows
             };
 
             // Username section
@@ -174,17 +173,18 @@ namespace EShiftManagementSystem
                 Text = "Username",
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.FromArgb(75, 85, 99),
-                Location = new Point(60, 160),
-                Size = new Size(100, 20)
+                Location = new Point(60, 130),
+                AutoSize = true
             };
 
             txtUsername = new TextBox
             {
-                Location = new Point(60, 185),
+                Location = new Point(60, 160),
                 Size = new Size(360, 35),
                 Font = new Font("Segoe UI", 12),
-                BorderStyle = BorderStyle.None,
-                BackColor = Color.FromArgb(249, 250, 251)
+                BorderStyle = BorderStyle.FixedSingle, // More visible
+                ForeColor = Color.Black,
+                BackColor = Color.White
             };
             AddTextBoxStyling(txtUsername, "Enter your username");
 
@@ -194,18 +194,19 @@ namespace EShiftManagementSystem
                 Text = "Password",
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.FromArgb(75, 85, 99),
-                Location = new Point(60, 240),
-                Size = new Size(100, 20)
+                Location = new Point(60, 215),
+                AutoSize = true
             };
 
             txtPassword = new TextBox
             {
-                Location = new Point(60, 265),
+                Location = new Point(60, 245),
                 Size = new Size(360, 35),
                 Font = new Font("Segoe UI", 12),
-                BorderStyle = BorderStyle.None,
+                BorderStyle = BorderStyle.FixedSingle,
                 UseSystemPasswordChar = true,
-                BackColor = Color.FromArgb(249, 250, 251)
+                ForeColor = Color.Black,
+                BackColor = Color.White
             };
             AddTextBoxStyling(txtPassword, "Enter your password");
 
@@ -213,7 +214,7 @@ namespace EShiftManagementSystem
             btnLogin = new Button
             {
                 Text = "Sign In",
-                Location = new Point(60, 330),
+                Location = new Point(60, 310),
                 Size = new Size(360, 45),
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = Color.White,
@@ -230,7 +231,7 @@ namespace EShiftManagementSystem
             btnRegister = new Button
             {
                 Text = "Create Account",
-                Location = new Point(60, 390),
+                Location = new Point(60, 370),
                 Size = new Size(360, 45),
                 Font = new Font("Segoe UI", 12, FontStyle.Regular),
                 ForeColor = Color.FromArgb(34, 197, 94),
@@ -248,7 +249,7 @@ namespace EShiftManagementSystem
             btnBack = new Button
             {
                 Text = "← Back to Home",
-                Location = new Point(60, 450),
+                Location = new Point(60, 430),
                 Size = new Size(360, 45),
                 Font = new Font("Segoe UI", 12, FontStyle.Regular),
                 ForeColor = Color.FromArgb(75, 85, 99),
@@ -262,11 +263,18 @@ namespace EShiftManagementSystem
             AddButtonHoverEffect(btnBack, Color.FromArgb(249, 250, 251));
             AddRoundedCorners(btnBack, 8);
 
+            // Clear and add controls to panel
+            panelRight.Controls.Clear();
             panelRight.Controls.AddRange(new Control[] {
-                lblLoginTitle, lblUsername, txtUsername, lblPassword, txtPassword,
-                btnLogin, btnRegister, btnBack
-            });
+        lblLoginTitle, lblUsername, txtUsername,
+        lblPassword, txtPassword,
+        btnLogin, btnRegister, btnBack
+    });
+
+            // Optional: Enable scroll if content overflows
+            panelRight.AutoScroll = true;
         }
+
 
         private void CreateCloseButton()
         {

@@ -81,13 +81,18 @@ namespace EShiftManagementSystem
         private async void SetupAdminForm()
         {
             this.Text = "EShift Management System - Admin Dashboard";
-            this.Size = new Size(1400, 800);
+            this.Size = new Size(1200, 800);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+
 
             // Create main tab control
             _tabControl = new TabControl();
             _tabControl.Dock = DockStyle.Fill;
-            _tabControl.Font = new Font("Microsoft Sans Serif", 10F);
+            _tabControl.Font = new Font("Segoe UI", 12F, FontStyle.Bold); // larger, modern font
+            _tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
+            _tabControl.ItemSize = new Size(200, 40); // wider & taller tabs
+            _tabControl.DrawItem += TabControl_DrawItem;
 
             // Create tabs
             adminDashboardTab = await CreateAdminDashboardTabAsync();
@@ -108,25 +113,27 @@ namespace EShiftManagementSystem
             _tabControl.TabPages.Add(CreateReportsTab());
 
             // Create top panel for admin info and logout
-            Panel topPanel = new Panel();
-            topPanel.Height = 60;
-            topPanel.Dock = DockStyle.Top;
-            topPanel.BackColor = Color.Red;
+            Panel topPanel = new Panel
+            {
+                Height = 60,
+                Dock = DockStyle.Top,
+                BackColor = Color.Red
+            };
 
             Label adminLabel = new Label
             {
                 Text = "Admin Dashboard",
                 Font = new Font("Microsoft Sans Serif", 14F, FontStyle.Bold),
-                ForeColor = Color.White,
+                ForeColor = Color.MistyRose,
                 Location = new Point(20, 20),
-                Size = new Size(200, 25)
+                Size = new Size(250, 25)
             };
 
             _logoutButton = new Button
             {
                 Text = "Logout",
                 Size = new Size(80, 35),
-                Location = new Point(1260, 12),
+                Location = new Point(1100, 12),
                 BackColor = Color.Red,
                 ForeColor = Color.White
             };
@@ -143,16 +150,56 @@ namespace EShiftManagementSystem
             await LoadAllDataAsync();
         }
 
+        // Custom drawing for colorful tab buttons with selected tab highlight
+        private void TabControl_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            TabPage tabPage = _tabControl.TabPages[e.Index];
+            Rectangle tabRect = _tabControl.GetTabRect(e.Index);
+            bool isSelected = (_tabControl.SelectedIndex == e.Index);
+
+            // Colors for each tab (cycle if more than list)
+            Color[] tabColors = { Color.SkyBlue, Color.LightGreen, Color.LightSalmon, Color.Plum, Color.Khaki, Color.LightCoral };
+            Color backColor = tabColors[e.Index % tabColors.Length];
+            Color borderColor = Color.DarkGray;
+
+            using (SolidBrush brush = new SolidBrush(isSelected ? ControlPaint.Dark(backColor) : backColor))
+            {
+                e.Graphics.FillRectangle(brush, tabRect);
+            }
+
+            using (Pen pen = new Pen(borderColor))
+            {
+                e.Graphics.DrawRectangle(pen, tabRect);
+            }
+
+            TextRenderer.DrawText(
+                e.Graphics,
+                tabPage.Text,
+                _tabControl.Font,
+                tabRect,
+                isSelected ? Color.White : Color.Black,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter
+            );
+        }
+
         private async Task<TabPage> CreateAdminDashboardTabAsync()
         {
             TabPage tab = new TabPage("Dashboard");
+
+            var mainPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10),
+                BackColor = Color.AntiqueWhite,
+                AutoScroll = true
+            };
 
             Panel summaryPanel = new Panel
             {
                 Location = new Point(20, 20),
                 Size = new Size(1300, 150),
                 BorderStyle = BorderStyle.FixedSingle,
-                BackColor = Color.LightGray
+                BackColor = Color.GreenYellow
             };
 
             Label titleLabel = new Label
@@ -170,12 +217,11 @@ namespace EShiftManagementSystem
             CreateSummaryCard(summaryPanel, "Active Jobs", stats["ActiveJobs"].ToString(), Color.Orange, new Point(250, 50));
             CreateSummaryCard(summaryPanel, "Transport Units", stats["TransportUnits"].ToString(), Color.Green, new Point(450, 50));
             CreateSummaryCard(summaryPanel, "Completed Jobs", stats["CompletedJobs"].ToString(), Color.Purple, new Point(650, 50));
-            CreateSummaryCard(summaryPanel, "Total Revenue", $"${revenue:F2}", Color.Red, new Point(850, 50));
-
+            CreateSummaryCard(summaryPanel, "Total Revenue", $"Rs.{revenue:F2}", Color.Red, new Point(850, 50));
 
             Panel activityPanel = new Panel
             {
-                Location = new Point(20, 180),
+                Location = new Point(20, 190),
                 Size = new Size(1300, 380),
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -234,11 +280,14 @@ namespace EShiftManagementSystem
             activityPanel.Controls.Add(activityTitle);
             activityPanel.Controls.Add(activityList);
 
-            tab.Controls.Add(summaryPanel);
-            tab.Controls.Add(activityPanel);
+            mainPanel.Controls.Add(summaryPanel);
+            mainPanel.Controls.Add(activityPanel);
+
+            tab.Controls.Add(mainPanel);
 
             return tab;
         }
+
 
         private void ListView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
         {
@@ -332,8 +381,70 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White
+                BackColor = Color.AntiqueWhite
             };
+
+            // Search panel at the top
+            Panel searchPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 50,
+                BackColor = Color.AntiqueWhite,
+                Padding = new Padding(5)
+            };
+
+            Label lblSearch = new Label
+            {
+                Text = "Search:",
+                Location = new Point(10, 15),
+                Size = new Size(60, 23),
+                Font = new Font("Segoe UI", 10F)
+            };
+
+            TextBox txtSearch = new TextBox
+            {
+                Location = new Point(70, 12),
+                Size = new Size(300, 23),
+                Name = "txtSearch",
+                Font = new Font("Segoe UI", 10F)
+            };
+
+            Button btnSearch = new Button
+            {
+                Text = "Search",
+                Location = new Point(380, 10),
+                Size = new Size(80, 27),
+                BackColor = Color.FromArgb(40, 167, 69),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F)
+            };
+
+            Button btnClearSearch = new Button
+            {
+                Text = "Clear",
+                Location = new Point(470, 10),
+                Size = new Size(60, 27),
+                BackColor = Color.Gray,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F)
+            };
+
+            ComboBox cmbSearchBy = new ComboBox
+            {
+                Location = new Point(540, 12),
+                Size = new Size(120, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 9F)
+            };
+            cmbSearchBy.Items.AddRange(new string[] { "All Fields", "Name", "Email", "Phone", "Customer ID" });
+            cmbSearchBy.SelectedIndex = 0;
+
+            searchPanel.Controls.AddRange(new Control[]
+            {
+        lblSearch, txtSearch, btnSearch, btnClearSearch, cmbSearchBy
+            });
 
             customerListView = new ListView
             {
@@ -365,7 +476,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White,
+                BackColor = Color.AntiqueWhite,
                 BorderStyle = BorderStyle.FixedSingle
             };
 
@@ -380,31 +491,35 @@ namespace EShiftManagementSystem
             int yStart = 50;
             int spacing = 35;
 
-            Label lblFirstName = new Label { Text = "First Name:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            TextBox txtFirstName = new TextBox { Location = new Point(100, yStart), Size = new Size(200, 23), Name = "txtFirstName" };
+            Label lblFirstName = new Label { Text = "First Name:", Location = new Point(10, yStart), Size = new Size(100, 23) };
+            TextBox txtFirstName = new TextBox { Location = new Point(120, yStart), Size = new Size(200, 23), Name = "txtFirstName" };
 
-            Label lblLastName = new Label { Text = "Last Name:", Location = new Point(320, yStart), Size = new Size(80, 23) };
-            TextBox txtLastName = new TextBox { Location = new Point(410, yStart), Size = new Size(200, 23), Name = "txtLastName" };
-
-            yStart += spacing;
-            Label lblEmail = new Label { Text = "Email:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            TextBox txtEmail = new TextBox { Location = new Point(100, yStart), Size = new Size(300, 23), Name = "txtEmail" };
-
-            Label lblPhone = new Label { Text = "Phone:", Location = new Point(420, yStart), Size = new Size(80, 23) };
-            TextBox txtPhone = new TextBox { Location = new Point(510, yStart), Size = new Size(150, 23), Name = "txtPhone" };
+            Label lblLastName = new Label { Text = "Last Name:", Location = new Point(340, yStart), Size = new Size(100, 23) };
+            TextBox txtLastName = new TextBox { Location = new Point(450, yStart), Size = new Size(200, 23), Name = "txtLastName" };
 
             yStart += spacing;
-            Label lblAddress = new Label { Text = "Address:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            TextBox txtAddress = new TextBox { Location = new Point(100, yStart), Size = new Size(560, 60), Multiline = true, Name = "txtAddress", ScrollBars = ScrollBars.Vertical };
+
+            Label lblEmail = new Label { Text = "Email:", Location = new Point(10, yStart), Size = new Size(100, 23) };
+            TextBox txtEmail = new TextBox { Location = new Point(120, yStart), Size = new Size(280, 23), Name = "txtEmail" };
+
+            Label lblPhone = new Label { Text = "Phone:", Location = new Point(420, yStart), Size = new Size(100, 23) };
+            TextBox txtPhone = new TextBox { Location = new Point(530, yStart), Size = new Size(120, 23), Name = "txtPhone" };
+
+            yStart += spacing;
+
+            Label lblAddress = new Label { Text = "Address:", Location = new Point(10, yStart), Size = new Size(100, 23) };
+            TextBox txtAddress = new TextBox { Location = new Point(120, yStart), Size = new Size(530, 60), Multiline = true, Name = "txtAddress", ScrollBars = ScrollBars.Vertical };
 
             yStart += 70;
-            Label lblPassword = new Label { Text = "Password:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            TextBox txtPassword = new TextBox { Location = new Point(100, yStart), Size = new Size(200, 23), Name = "txtPassword", UseSystemPasswordChar = true };
+
+            Label lblPassword = new Label { Text = "Password:", Location = new Point(10, yStart), Size = new Size(100, 23) };
+            TextBox txtPassword = new TextBox { Location = new Point(120, yStart), Size = new Size(200, 23), Name = "txtPassword", UseSystemPasswordChar = true };
+
 
             Button btnAddCustomer = new Button
             {
                 Text = "Add Customer",
-                Location = new Point(320, yStart),
+                Location = new Point(340, yStart),
                 Size = new Size(110, 30),
                 BackColor = Color.FromArgb(0, 123, 255),
                 ForeColor = Color.White,
@@ -414,7 +529,7 @@ namespace EShiftManagementSystem
             Button btnUpdateCustomer = new Button
             {
                 Text = "Update",
-                Location = new Point(440, yStart),
+                Location = new Point(460, yStart),
                 Size = new Size(80, 30),
                 BackColor = Color.Orange,
                 ForeColor = Color.White,
@@ -424,13 +539,14 @@ namespace EShiftManagementSystem
             Button btnDeleteCustomer = new Button
             {
                 Text = "Delete",
-                Location = new Point(530, yStart),
+                Location = new Point(550, yStart),
                 Size = new Size(80, 30),
                 BackColor = Color.Red,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat
             };
 
+            // Event handlers for buttons
             btnAddCustomer.Click += async (s, e) =>
             {
                 await AddCustomerAsync(txtFirstName, txtLastName, txtEmail, txtPhone, txtAddress, txtPassword, customerListView);
@@ -448,24 +564,49 @@ namespace EShiftManagementSystem
                 await DeleteCustomerAsync(customerListView);
                 ClearCustomerForm(txtFirstName, txtLastName, txtEmail, txtPhone, txtAddress, txtPassword, customerListView);
             };
+
+            // Search event handlers
+            btnSearch.Click += async (s, e) =>
+            {
+                await SearchCustomersAsync(txtSearch.Text.Trim(), cmbSearchBy.SelectedItem.ToString());
+            };
+
+            btnClearSearch.Click += async (s, e) =>
+            {
+                txtSearch.Clear();
+                cmbSearchBy.SelectedIndex = 0;
+                await RefreshCustomerListAsync();
+            };
+
+            // Enable search on Enter key press
+            txtSearch.KeyDown += async (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    await SearchCustomersAsync(txtSearch.Text.Trim(), cmbSearchBy.SelectedItem.ToString());
+                }
+            };
+
+
             customerListView.SelectedIndexChanged += (s, e) =>
                 LoadCustomerForEdit(customerListView, txtFirstName, txtLastName, txtEmail, txtPhone, txtAddress, txtPassword);
 
             formPanel.Controls.AddRange(new Control[]
             {
-                lblTitle,
-                lblFirstName, txtFirstName,
-                lblLastName, txtLastName,
-                lblEmail, txtEmail,
-                lblPhone, txtPhone,
-                lblAddress, txtAddress,
-                lblPassword, txtPassword,
-                btnAddCustomer, btnUpdateCustomer, btnDeleteCustomer
+        lblTitle,
+        lblFirstName, txtFirstName,
+        lblLastName, txtLastName,
+        lblEmail, txtEmail,
+        lblPhone, txtPhone,
+        lblAddress, txtAddress,
+        lblPassword, txtPassword,
+        btnAddCustomer, btnUpdateCustomer, btnDeleteCustomer
             });
 
-            // Add controls to the main panel in order
+            // Add controls to the main panel in order (search panel first)
             mainPanel.Controls.Add(formPanel);
             mainPanel.Controls.Add(customerListView);
+            mainPanel.Controls.Add(searchPanel);
 
             // Add main panel to the tab
             tab.Controls.Add(mainPanel);
@@ -473,6 +614,83 @@ namespace EShiftManagementSystem
             await RefreshCustomerListAsync();
 
             return tab;
+        }
+
+        // Add this method to handle the search functionality
+        private async Task SearchCustomersAsync(string searchTerm, string searchBy)
+        {
+            try
+            {
+                customerListView.Items.Clear();
+
+                if (string.IsNullOrEmpty(searchTerm))
+                {
+                    await RefreshCustomerListAsync();
+                    return;
+                }
+
+                // Search through existing ListView items instead of database query
+                // First, refresh the full list to ensure we have all data
+                await RefreshCustomerListAsync();
+
+                // Store all items temporarily
+                List<ListViewItem> allItems = new List<ListViewItem>();
+                foreach (ListViewItem item in customerListView.Items)
+                {
+                    allItems.Add((ListViewItem)item.Clone());
+                }
+
+                // Clear and filter
+                customerListView.Items.Clear();
+
+                foreach (ListViewItem item in allItems)
+                {
+                    bool matchFound = false;
+
+                    switch (searchBy)
+                    {
+                        case "Name":
+                            matchFound = item.SubItems[1].Text.ToLower().Contains(searchTerm.ToLower());
+                            break;
+                        case "Email":
+                            matchFound = item.SubItems[2].Text.ToLower().Contains(searchTerm.ToLower());
+                            break;
+                        case "Phone":
+                            matchFound = item.SubItems[3].Text.Contains(searchTerm);
+                            break;
+                        case "Customer ID":
+                            matchFound = item.SubItems[0].Text.Contains(searchTerm);
+                            break;
+                        case "All Fields":
+                        default:
+                            matchFound = item.SubItems[0].Text.Contains(searchTerm) ||
+                                       item.SubItems[1].Text.ToLower().Contains(searchTerm.ToLower()) ||
+                                       item.SubItems[2].Text.ToLower().Contains(searchTerm.ToLower()) ||
+                                       item.SubItems[3].Text.Contains(searchTerm);
+                            break;
+                    }
+
+                    if (matchFound)
+                    {
+                        customerListView.Items.Add(item);
+                    }
+                }
+
+                // Update status or show message if no results found
+                if (customerListView.Items.Count == 0)
+                {
+                    ListViewItem noResultItem = new ListViewItem("No results found");
+                    noResultItem.SubItems.Add("");
+                    noResultItem.SubItems.Add("");
+                    noResultItem.SubItems.Add("");
+                    noResultItem.SubItems.Add("");
+                    customerListView.Items.Add(noResultItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error searching customers: {ex.Message}", "Search Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Helper to clear form fields
@@ -499,7 +717,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White
+                BackColor = Color.AntiqueWhite
             };
 
             transportUnitListView = new ListView
@@ -536,7 +754,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White,
+                BackColor = Color.AntiqueWhite,
                 BorderStyle = BorderStyle.FixedSingle
             };
 
@@ -551,33 +769,35 @@ namespace EShiftManagementSystem
             int yStart = 50;
             int spacing = 35;
 
-            Label lblUnitType = new Label { Text = "Unit Type:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            ComboBox cmbUnitType = new ComboBox { Location = new Point(100, yStart), Size = new Size(150, 23), Name = "cmbUnitType" };
+            Label lblUnitType = new Label { Text = "Unit Type:", Location = new Point(10, yStart), Size = new Size(110, 23) };
+            ComboBox cmbUnitType = new ComboBox { Location = new Point(150, yStart), Size = new Size(150, 23), Name = "cmbUnitType" };
             cmbUnitType.Items.AddRange(new string[] { "Truck", "Van", "Trailer", "Container" });
 
-            Label lblLicensePlate = new Label { Text = "License Plate:", Location = new Point(320, yStart), Size = new Size(100, 23) };
-            TextBox txtLicensePlate = new TextBox { Location = new Point(430, yStart), Size = new Size(150, 23), Name = "txtLicensePlate" };
+            Label lblLicensePlate = new Label { Text = "License Plate:", Location = new Point(330, yStart), Size = new Size(120, 23) };
+            TextBox txtLicensePlate = new TextBox { Location = new Point(460, yStart), Size = new Size(150, 23), Name = "txtLicensePlate" };
 
             yStart += spacing;
-            Label lblMaxWeight = new Label { Text = "Max Weight:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            NumericUpDown numMaxWeight = new NumericUpDown { Location = new Point(100, yStart), Size = new Size(100, 23), Name = "numMaxWeight", Maximum = 50000, DecimalPlaces = 2 };
+            Label lblMaxWeight = new Label { Text = "Max Weight:", Location = new Point(10, yStart), Size = new Size(110, 23) };
+            NumericUpDown numMaxWeight = new NumericUpDown { Location = new Point(150, yStart), Size = new Size(100, 23), Name = "numMaxWeight", Maximum = 50000, DecimalPlaces = 2 };
 
-            Label lblMaxVolume = new Label { Text = "Max Volume:", Location = new Point(320, yStart), Size = new Size(100, 23) };
-            NumericUpDown numMaxVolume = new NumericUpDown { Location = new Point(430, yStart), Size = new Size(100, 23), Name = "numMaxVolume", Maximum = 10000, DecimalPlaces = 2 };
-
-            yStart += spacing;
-            Label lblDriverName = new Label { Text = "Driver Name:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            TextBox txtDriverName = new TextBox { Location = new Point(120, yStart), Size = new Size(180, 23), Name = "txtDriverName" };
-
-            Label lblDriverPhone = new Label { Text = "Driver Phone:", Location = new Point(320, yStart), Size = new Size(100, 23) };
-            TextBox txtDriverPhone = new TextBox { Location = new Point(430, yStart), Size = new Size(150, 23), Name = "txtDriverPhone" };
+            Label lblMaxVolume = new Label { Text = "Max Volume:", Location = new Point(330, yStart), Size = new Size(110, 23) };
+            NumericUpDown numMaxVolume = new NumericUpDown { Location = new Point(460, yStart), Size = new Size(100, 23), Name = "numMaxVolume", Maximum = 10000, DecimalPlaces = 2 };
 
             yStart += spacing;
-            Label lblAssistantName = new Label { Text = "Assistant Name:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            TextBox txtAssistantName = new TextBox { Location = new Point(120, yStart), Size = new Size(180, 23), Name = "txtAssistantName" };
+            Label lblDriverName = new Label { Text = "Driver Name:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            TextBox txtDriverName = new TextBox { Location = new Point(150, yStart), Size = new Size(180, 23) };
+
+            Label lblDriverPhone = new Label { Text = "Driver Phone:", Location = new Point(330, yStart), Size = new Size(120, 23) };
+            TextBox txtDriverPhone = new TextBox { Location = new Point(460, yStart), Size = new Size(150, 23) };
+
 
             yStart += spacing;
-            CheckBox chkAvailable = new CheckBox { Text = "Available", Location = new Point(120, yStart), Size = new Size(100, 23), Name = "chkAvailable", Checked = true };
+            Label lblAssistantName = new Label { Text = "Assistant Name:", Location = new Point(10, yStart), Size = new Size(135, 23) };
+            TextBox txtAssistantName = new TextBox { Location = new Point(150, yStart), Size = new Size(180, 23), Name = "txtAssistantName" };
+
+            yStart += spacing;
+            CheckBox chkAvailable = new CheckBox { Text = "Available", Location = new Point(150, yStart), Size = new Size(110, 23), Name = "chkAvailable", Checked = true };
+
 
             Button btnAddUnit = new Button
             {
@@ -677,7 +897,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White
+                BackColor = Color.AntiqueWhite
             };
 
             jobListView = new ListView
@@ -714,7 +934,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White,
+                BackColor = Color.AntiqueWhite,
                 BorderStyle = BorderStyle.FixedSingle
             };
 
@@ -729,36 +949,30 @@ namespace EShiftManagementSystem
             int yStart = 50;
             int spacing = 35;
 
-            Label lblCustomer = new Label { Text = "Customer:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            ComboBox cmbCustomer = new ComboBox { Location = new Point(100, yStart), Size = new Size(200, 23), Name = "cmbCustomer", DropDownStyle = ComboBoxStyle.DropDownList };
-
-            // Store reference to the customer dropdown
+            Label lblCustomer = new Label { Text = "Customer:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            ComboBox cmbCustomer = new ComboBox { Location = new Point(140, yStart), Size = new Size(180, 23), Name = "cmbCustomer", DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblStartLocation = new Label { Text = "Start Location:", Location = new Point(340, yStart), Size = new Size(120, 23) };
+            TextBox txtStartLocation = new TextBox { Location = new Point(470, yStart), Size = new Size(180, 23), Name = "txtStartLocation" };
             jobCustomerComboBox = cmbCustomer;
-
             yStart += spacing;
-            Label lblStartLocation = new Label { Text = "Start Location:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            TextBox txtStartLocation = new TextBox { Location = new Point(120, yStart), Size = new Size(250, 23), Name = "txtStartLocation" };
 
+            Label lblDestination = new Label { Text = "Destination:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            TextBox txtDestination = new TextBox { Location = new Point(140, yStart), Size = new Size(180, 23), Name = "txtDestination" };
+            Label lblRequestDate = new Label { Text = "Request Date:", Location = new Point(340, yStart), Size = new Size(120, 23) };
+            DateTimePicker dtpRequestDate = new DateTimePicker { Location = new Point(470, yStart), Size = new Size(180, 23), Name = "dtpRequestDate" };
             yStart += spacing;
-            Label lblDestination = new Label { Text = "Destination:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            TextBox txtDestination = new TextBox { Location = new Point(120, yStart), Size = new Size(250, 23), Name = "txtDestination" };
 
-            yStart += spacing;
-            Label lblDescription = new Label { Text = "Description:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            TextBox txtDescription = new TextBox { Location = new Point(120, yStart), Size = new Size(250, 60), Multiline = true, Name = "txtDescription" };
-
-            yStart += 70;
-            Label lblRequestDate = new Label { Text = "Request Date:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            DateTimePicker dtpRequestDate = new DateTimePicker { Location = new Point(120, yStart), Size = new Size(200, 23), Name = "dtpRequestDate" };
-
-            yStart += spacing;
-            Label lblStatus = new Label { Text = "Status:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            ComboBox cmbStatus = new ComboBox { Location = new Point(120, yStart), Size = new Size(150, 23), Name = "cmbStatus", DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblStatus = new Label { Text = "Status:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            ComboBox cmbStatus = new ComboBox { Location = new Point(140, yStart), Size = new Size(180, 23), Name = "cmbStatus", DropDownStyle = ComboBoxStyle.DropDownList };
             cmbStatus.Items.AddRange(new string[] { "Pending", "Accepted", "In Progress", "Completed", "Cancelled" });
-
+            Label lblCost = new Label { Text = "Cost:", Location = new Point(340, yStart), Size = new Size(120, 23) };
+            NumericUpDown numCost = new NumericUpDown { Location = new Point(470, yStart), Size = new Size(180, 23), Name = "numCost", Maximum = 100000, DecimalPlaces = 2 };
             yStart += spacing;
-            Label lblCost = new Label { Text = "Cost:", Location = new Point(10, yStart), Size = new Size(100, 23) };
-            NumericUpDown numCost = new NumericUpDown { Location = new Point(120, yStart), Size = new Size(100, 23), Name = "numCost", Maximum = 100000, DecimalPlaces = 2 };
+
+            Label lblDescription = new Label { Text = "Description:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            TextBox txtDescription = new TextBox { Location = new Point(140, yStart), Size = new Size(510, 60), Multiline = true, Name = "txtDescription" };
+            yStart += 70;
+
 
             Button btnAddJob = new Button
             {
@@ -848,7 +1062,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White
+                BackColor = Color.AntiqueWhite
             };
 
             loadListView = new ListView
@@ -872,13 +1086,14 @@ namespace EShiftManagementSystem
             loadListView.DrawSubItem += ListView_DrawSubItem;
 
             loadListView.Columns.Add("Load ID", 80);
-            loadListView.Columns.Add("Job ID", 80);
+            loadListView.Columns.Add("Job ID", 250);
             loadListView.Columns.Add("Transport Unit", 120);
             loadListView.Columns.Add("Description", 150);
             loadListView.Columns.Add("Weight", 80);
             loadListView.Columns.Add("Volume", 80);
             loadListView.Columns.Add("Category", 100);
             loadListView.Columns.Add("Status", 100);
+            loadListView.Columns.Add("Created Date", 100);
             loadListView.Columns.Add("Start Location", 100);
 
             // Form panel below the ListView
@@ -886,7 +1101,7 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10),
-                BackColor = Color.White,
+                BackColor = Color.AntiqueWhite,
                 BorderStyle = BorderStyle.FixedSingle
             };
 
@@ -901,34 +1116,34 @@ namespace EShiftManagementSystem
             int yStart = 50;
             int spacing = 35;
 
-            Label lblJob = new Label { Text = "Job:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            ComboBox cmbJob = new ComboBox { Location = new Point(100, yStart), Size = new Size(200, 23), Name = "cmbJob", DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblJob = new Label { Text = "Job:", Location = new Point(10, yStart), Size = new Size(100, 23) };
+            ComboBox cmbJob = new ComboBox { Location = new Point(140, yStart), Size = new Size(200, 23), Name = "cmbJob", DropDownStyle = ComboBoxStyle.DropDownList };
 
             loadJobComboBox = cmbJob;
 
-            Label lblTransportUnit = new Label { Text = "Transport Unit:", Location = new Point(320, yStart), Size = new Size(100, 23) };
-            ComboBox cmbTransportUnit = new ComboBox { Location = new Point(430, yStart), Size = new Size(200, 23), Name = "cmbTransportUnit", DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblTransportUnit = new Label { Text = "Transport Unit:", Location = new Point(340, yStart), Size = new Size(130, 23) };
+            ComboBox cmbTransportUnit = new ComboBox { Location = new Point(470, yStart), Size = new Size(200, 23), Name = "cmbTransportUnit", DropDownStyle = ComboBoxStyle.DropDownList };
 
             loadTransportUnitComboBox = cmbTransportUnit;
 
             yStart += spacing;
-            Label lblDescription = new Label { Text = "Description:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            TextBox txtLoadDescription = new TextBox { Location = new Point(100, yStart), Size = new Size(530, 60), Multiline = true, Name = "txtLoadDescription" };
+            Label lblDescription = new Label { Text = "Description:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            TextBox txtLoadDescription = new TextBox { Location = new Point(140, yStart), Size = new Size(530, 60), Multiline = true, Name = "txtLoadDescription" };
 
             yStart += 70; // Extra space for multiline textbox
-            Label lblWeight = new Label { Text = "Weight (kg):", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            NumericUpDown numWeight = new NumericUpDown { Location = new Point(100, yStart), Size = new Size(100, 23), Name = "numWeight", Maximum = 50000, DecimalPlaces = 2 };
+            Label lblWeight = new Label { Text = "Weight (kg):", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            NumericUpDown numWeight = new NumericUpDown { Location = new Point(140, yStart), Size = new Size(100, 23), Name = "numWeight", Maximum = 50000, DecimalPlaces = 2 };
 
-            Label lblVolume = new Label { Text = "Volume (m³):", Location = new Point(320, yStart), Size = new Size(80, 23) };
-            NumericUpDown numVolume = new NumericUpDown { Location = new Point(410, yStart), Size = new Size(100, 23), Name = "numVolume", Maximum = 10000, DecimalPlaces = 2 };
+            Label lblVolume = new Label { Text = "Volume (m³):", Location = new Point(320, yStart), Size = new Size(120, 23) };
+            NumericUpDown numVolume = new NumericUpDown { Location = new Point(450, yStart), Size = new Size(100, 23), Name = "numVolume", Maximum = 10000, DecimalPlaces = 2 };
 
             yStart += spacing;
-            Label lblCategory = new Label { Text = "Category:", Location = new Point(10, yStart), Size = new Size(80, 23) };
-            ComboBox cmbCategory = new ComboBox { Location = new Point(100, yStart), Size = new Size(150, 23), Name = "cmbCategory" };
+            Label lblCategory = new Label { Text = "Category:", Location = new Point(10, yStart), Size = new Size(120, 23) };
+            ComboBox cmbCategory = new ComboBox { Location = new Point(140, yStart), Size = new Size(150, 23), Name = "cmbCategory" };
             cmbCategory.Items.AddRange(new string[] { "Furniture", "Electronics", "Clothing", "Books", "Fragile", "Heavy", "Other" });
 
-            Label lblLoadStatus = new Label { Text = "Status:", Location = new Point(320, yStart), Size = new Size(80, 23) };
-            ComboBox cmbLoadStatus = new ComboBox { Location = new Point(410, yStart), Size = new Size(150, 23), Name = "cmbLoadStatus", DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblLoadStatus = new Label { Text = "Status:", Location = new Point(320, yStart), Size = new Size(120, 23) };
+            ComboBox cmbLoadStatus = new ComboBox { Location = new Point(450, yStart), Size = new Size(150, 23), Name = "cmbLoadStatus", DropDownStyle = ComboBoxStyle.DropDownList };
             cmbLoadStatus.Items.AddRange(new string[] { "Assigned", "Delivered" });
 
             yStart += spacing;
@@ -1002,7 +1217,6 @@ namespace EShiftManagementSystem
             // Add ListView and formPanel to main container panel
             mainPanel.Controls.Add(formPanel);
             mainPanel.Controls.Add(loadListView);
-
             tab.Controls.Add(mainPanel);
 
             // Load data into combo boxes
@@ -1036,7 +1250,8 @@ namespace EShiftManagementSystem
             {
                 Size = new Size(300, 450),
                 Location = new Point(20, 20),
-                BorderStyle = BorderStyle.FixedSingle
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.AntiqueWhite
             };
 
             Label lblTitle = new Label
@@ -1044,14 +1259,13 @@ namespace EShiftManagementSystem
                 Text = "Reports & Analytics",
                 Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold),
                 Location = new Point(10, 10),
-                Size = new Size(200, 25)
+                Size = new Size(250, 30)
             };
 
-            // Create buttons for each report
             Button btnCustomerReport = new Button
             {
                 Text = "Generate Customer Report",
-                Location = new Point(10, 50),
+                Location = new Point(10, 60),
                 Size = new Size(180, 30),
                 BackColor = Color.DarkBlue,
                 ForeColor = Color.White
@@ -1060,7 +1274,7 @@ namespace EShiftManagementSystem
             Button btnSaveCustomerPdf = new Button
             {
                 Text = "Save as PDF",
-                Location = new Point(200, 50),
+                Location = new Point(200, 60),
                 Size = new Size(80, 30),
                 BackColor = Color.LightBlue,
                 ForeColor = Color.Black
@@ -1069,7 +1283,7 @@ namespace EShiftManagementSystem
             Button btnJobReport = new Button
             {
                 Text = "Generate Job Report",
-                Location = new Point(10, 90),
+                Location = new Point(10, 110),
                 Size = new Size(180, 30),
                 BackColor = Color.DarkGreen,
                 ForeColor = Color.White
@@ -1078,7 +1292,7 @@ namespace EShiftManagementSystem
             Button btnSaveJobPdf = new Button
             {
                 Text = "Save as PDF",
-                Location = new Point(200, 90),
+                Location = new Point(200, 110),
                 Size = new Size(80, 30),
                 BackColor = Color.LightGreen,
                 ForeColor = Color.Black
@@ -1087,7 +1301,7 @@ namespace EShiftManagementSystem
             Button btnRevenueReport = new Button
             {
                 Text = "Generate Revenue Report",
-                Location = new Point(10, 130),
+                Location = new Point(10, 160),
                 Size = new Size(180, 30),
                 BackColor = Color.DarkRed,
                 ForeColor = Color.White
@@ -1096,22 +1310,31 @@ namespace EShiftManagementSystem
             Button btnSaveRevenuePdf = new Button
             {
                 Text = "Save as PDF",
-                Location = new Point(200, 130),
+                Location = new Point(200, 160),
                 Size = new Size(80, 30),
                 BackColor = Color.IndianRed,
                 ForeColor = Color.Black
             };
 
-            RichTextBox rtbReportDisplay = new RichTextBox
+            Panel reportDisplayPanel = new Panel
             {
                 Location = new Point(340, 20),
                 Size = new Size(800, 500),
-                Name = "rtbReportDisplay",
-                ReadOnly = true,
-                Font = new Font("Courier New", 9F)
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.AntiqueWhite
             };
 
-            // Generate report handlers (for preview in text box)
+            RichTextBox rtbReportDisplay = new RichTextBox
+            {
+                Location = new Point(5, 5),
+                Size = new Size(790, 490),
+                Name = "rtbReportDisplay",
+                ReadOnly = true,
+                Font = new Font("Courier New", 9F),
+                BackColor = Color.AntiqueWhite,
+                BorderStyle = BorderStyle.None
+            };
+
             btnCustomerReport.Click += async (s, e) =>
             {
                 var reportText = await GenerateCustomerReportTextAsync();
@@ -1130,7 +1353,6 @@ namespace EShiftManagementSystem
                 rtbReportDisplay.Text = reportText;
             };
 
-            // Professional PDF generation handlers
             btnSaveCustomerPdf.Click += async (s, e) =>
             {
                 await LoadAllDataAsync();
@@ -1149,18 +1371,22 @@ namespace EShiftManagementSystem
                 SaveRevenueReportToPdf($"RevenueReport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
             };
 
+            reportDisplayPanel.Controls.Add(rtbReportDisplay);
+
             reportPanel.Controls.AddRange(new Control[] {
-            lblTitle,
-            btnCustomerReport, btnSaveCustomerPdf,
-            btnJobReport, btnSaveJobPdf,
-            btnRevenueReport, btnSaveRevenuePdf
-        });
+        lblTitle,
+        btnCustomerReport, btnSaveCustomerPdf,
+        btnJobReport, btnSaveJobPdf,
+        btnRevenueReport, btnSaveRevenuePdf
+    });
 
             tab.Controls.Add(reportPanel);
-            tab.Controls.Add(rtbReportDisplay);
+            tab.Controls.Add(reportDisplayPanel);
 
             return tab;
         }
+
+
 
 
         // Customer Management Methods
@@ -1719,6 +1945,13 @@ namespace EShiftManagementSystem
                         }
                     }
 
+                    //  If load is delivered, mark job as completed
+                    if (existingLoad.Status == "Delivered")
+                    {
+                        await _dataManager.UpdateJobStatusAsync(existingLoad.JobId, "Completed");
+                    }
+
+
                     await _context.SaveChangesAsync();
                     await RefreshAllTabsAsync();
                     await RefreshLoadListAsync();
@@ -1855,7 +2088,7 @@ namespace EShiftManagementSystem
                 report.AppendLine($"From: {job.StartLocation}");
                 report.AppendLine($"To: {job.Destination}");
                 report.AppendLine($"Status: {job.Status}");
-                report.AppendLine($"Cost: ${job.Cost:F2}");
+                report.AppendLine($"Cost: Rs.{job.Cost:F2}");
                 report.AppendLine($"Created: {job.CreatedDate:yyyy-MM-dd HH:mm}");
 
                 if (job.CompletionDate.HasValue)
@@ -1884,10 +2117,10 @@ namespace EShiftManagementSystem
             var inProgressJobs = _jobs.Where(j => j.Status == "In Progress").ToList();
 
             report.AppendLine("REVENUE SUMMARY:");
-            report.AppendLine($"Total Revenue: ${totalRevenue:F2}");
-            report.AppendLine($"Completed Jobs Revenue: ${completedJobs.Sum(j => j.Cost):F2} ({completedJobs.Count} jobs)");
-            report.AppendLine($"Pending Jobs Revenue: ${pendingJobs.Sum(j => j.Cost):F2} ({pendingJobs.Count} jobs)");
-            report.AppendLine($"In Progress Jobs Revenue: ${inProgressJobs.Sum(j => j.Cost):F2} ({inProgressJobs.Count} jobs)");
+            report.AppendLine($"Total Revenue: Rs.{totalRevenue:F2}");
+            report.AppendLine($"Completed Jobs Revenue: Rs.{completedJobs.Sum(j => j.Cost):F2} ({completedJobs.Count} jobs)");
+            report.AppendLine($"Pending Jobs Revenue: Rs.{pendingJobs.Sum(j => j.Cost):F2} ({pendingJobs.Count} jobs)");
+            report.AppendLine($"In Progress Jobs Revenue: Rs.{inProgressJobs.Sum(j => j.Cost):F2} ({inProgressJobs.Count} jobs)");
             report.AppendLine();
 
             // Monthly revenue breakdown
@@ -1906,7 +2139,7 @@ namespace EShiftManagementSystem
             foreach (var month in monthlyRevenue)
             {
                 var monthName = new DateTime(month.Year, month.Month, 1).ToString("MMMM yyyy");
-                report.AppendLine($"{monthName}: ${month.Revenue:F2} ({month.JobCount} jobs) - Avg: ${(month.Revenue / month.JobCount):F2}");
+                report.AppendLine($"{monthName}: Rs.{month.Revenue:F2} ({month.JobCount} jobs) - Avg: Rs.{(month.Revenue / month.JobCount):F2}");
             }
             report.AppendLine();
 
@@ -1926,7 +2159,7 @@ namespace EShiftManagementSystem
             {
                 var customer = _customers.FirstOrDefault(c => c.CustomerId == cr.CustomerId);
                 var customerName = customer != null ? $"{customer.FirstName} {customer.LastName}" : "Unknown";
-                report.AppendLine($"{customerName}: ${cr.Revenue:F2} ({cr.JobCount} jobs) - Avg: ${(cr.Revenue / cr.JobCount):F2}");
+                report.AppendLine($"{customerName}: Rs.{cr.Revenue:F2} ({cr.JobCount} jobs) - Avg: Rs.{(cr.Revenue / cr.JobCount):F2}");
             }
             report.AppendLine();
 
@@ -1938,7 +2171,7 @@ namespace EShiftManagementSystem
 
             foreach (var status in revenueByStatus)
             {
-                report.AppendLine($"{status.Status}: ${status.Revenue:F2} ({status.Count} jobs) - Avg: ${(status.Revenue / status.Count):F2}");
+                report.AppendLine($"{status.Status}: Rs.{status.Revenue:F2} ({status.Count} jobs) - Avg: Rs.{(status.Revenue / status.Count):F2}");
             }
 
             return report.ToString();
@@ -1969,7 +2202,7 @@ namespace EShiftManagementSystem
                 if (customerJobs.Any())
                 {
                     var totalCost = customerJobs.Sum(j => j.Cost);
-                    report.AppendLine($"Total Revenue: ${totalCost:F2}");
+                    report.AppendLine($"Total Revenue: Rs.{totalCost:F2}");
                 }
 
                 report.AppendLine(new string('-', 50));
@@ -2107,7 +2340,7 @@ namespace EShiftManagementSystem
                 customer.Email,
                 customer.Phone,
                 customerJobs.Count.ToString(),
-                $"${totalRevenue:F2}"
+                $"Rs.{totalRevenue:F2}"
             };
 
                 yPosition = DrawTableRow(gfx, rowData, columnWidths, startX, yPosition, tableFont);
@@ -2142,7 +2375,7 @@ namespace EShiftManagementSystem
                 TruncateText(job.StartLocation, 15),
                 TruncateText(job.Destination, 15),
                 job.Status,
-                $"${job.Cost:F2}",
+                $"Rs.{job.Cost:F2}",
                 job.CreatedDate.ToString("MM/dd/yyyy")
             };
 
@@ -2188,9 +2421,9 @@ namespace EShiftManagementSystem
 
                 string[] rowData = {
                 $"{month.Year}-{month.Month:00}",
-                $"${month.Revenue:F2}",
+                $"Rs.{month.Revenue:F2}",
                 month.JobCount.ToString(),
-                $"${(month.Revenue / month.JobCount):F2}"
+                $"Rs.{(month.Revenue / month.JobCount):F2}"
             };
 
                 yPosition = DrawTableRow(gfx, rowData, columnWidths, startX, yPosition, tableFont);
@@ -2234,9 +2467,9 @@ namespace EShiftManagementSystem
                 var customer = _customers.FirstOrDefault(c => c.CustomerId == cr.CustomerId);
                 string[] rowData = {
                 customer != null ? $"{customer.FirstName} {customer.LastName}" : "Unknown",
-                $"${cr.Revenue:F2}",
+                $"Rs.{cr.Revenue:F2}",
                 cr.JobCount.ToString(),
-                $"${(cr.Revenue / cr.JobCount):F2}"
+                $"Rs.{(cr.Revenue / cr.JobCount):F2}"
             };
 
                 yPosition = DrawTableRow(gfx, rowData, columnWidths, startX, yPosition, tableFont);
@@ -2421,9 +2654,9 @@ namespace EShiftManagementSystem
             var pendingJobs = _jobs.Where(j => j.Status == "Pending").ToList();
 
             yPosition = DrawSummarySection(gfx, headerFont, regularFont, yPosition,
-                $"Total Revenue: ${totalRevenue:F2}",
-                $"Completed Jobs Revenue: ${completedJobs.Sum(j => j.Cost):F2}",
-                $"Pending Jobs Revenue: ${pendingJobs.Sum(j => j.Cost):F2}");
+                $"Total Revenue: Rs.{totalRevenue:F2}",
+                $"Completed Jobs Revenue: Rs.{completedJobs.Sum(j => j.Cost):F2}",
+                $"Pending Jobs Revenue: Rs.{pendingJobs.Sum(j => j.Cost):F2}");
 
             // Monthly Revenue Table
             yPosition = DrawMonthlyRevenueTable(gfx, tableHeaderFont, tableFont, yPosition, page, document);
@@ -2680,7 +2913,7 @@ namespace EShiftManagementSystem
                 UpdateSummaryCard("Active_Jobs", stats["ActiveJobs"].ToString());
                 UpdateSummaryCard("Transport_Units", stats["TransportUnits"].ToString());
                 UpdateSummaryCard("Completed_Jobs", stats["CompletedJobs"].ToString());
-                UpdateSummaryCard("Total_Revenue", $"${revenue:F2}");
+                UpdateSummaryCard("Total_Revenue", $"Rs.{revenue:F2}");
 
                 if (activityListView != null)
                 {

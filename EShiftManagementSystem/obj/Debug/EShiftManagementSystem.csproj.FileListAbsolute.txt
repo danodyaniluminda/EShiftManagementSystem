@@ -53,3 +53,4 @@ C:\Users\dnilu\OneDrive\Documents\Visual Studio 2015\Projects\EShiftManagementSy
 C:\Users\dnilu\OneDrive\Documents\Visual Studio 2015\Projects\EShiftManagementSystem\EShiftManagementSystem\bin\Debug\PdfSharp.Charting.xml
 C:\Users\dnilu\OneDrive\Documents\Visual Studio 2015\Projects\EShiftManagementSystem\EShiftManagementSystem\bin\Debug\de\PdfSharp.resources.dll
 C:\Users\dnilu\OneDrive\Documents\Visual Studio 2015\Projects\EShiftManagementSystem\EShiftManagementSystem\bin\Debug\de\PdfSharp.Charting.resources.dll
+C:\Users\dnilu\OneDrive\Documents\Visual Studio 2015\Projects\EShiftManagementSystem\EShiftManagementSystem\bin\Debug\Resources\background.jpg

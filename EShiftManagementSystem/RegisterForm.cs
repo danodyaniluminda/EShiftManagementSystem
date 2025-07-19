@@ -36,6 +36,7 @@ namespace EShiftManagementSystem
                 Size = new Size(480, 560),
                 Location = new Point(10, 10),
                 BackColor = Color.White,
+                AutoScroll = true
             };
             this.Controls.Add(panelForm);
         }
@@ -75,7 +76,7 @@ namespace EShiftManagementSystem
                 Font = new Font("Segoe UI", 12),
                 Multiline = true,
                 BackColor = Color.FromArgb(249, 250, 251),
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.FixedSingle
             };
             AddTextBoxStyling(txtAddress, "");
 
@@ -150,7 +151,8 @@ namespace EShiftManagementSystem
                 Size = new Size(280, 35),
                 Font = new Font("Segoe UI", 12),
                 BackColor = Color.FromArgb(249, 250, 251),
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(10)
             };
             if (isPassword)
                 tb.UseSystemPasswordChar = true;
@@ -160,8 +162,19 @@ namespace EShiftManagementSystem
 
         private void AddTextBoxStyling(TextBox textBox, string placeholder)
         {
-            textBox.Padding = new Padding(10);
-            textBox.Height = 35;
+            textBox.GotFocus += (s, e) =>
+            {
+                textBox.BackColor = Color.White;
+                textBox.BorderStyle = BorderStyle.FixedSingle;
+                textBox.Invalidate();
+            };
+
+            textBox.LostFocus += (s, e) =>
+            {
+                textBox.BackColor = Color.FromArgb(249, 250, 251);
+                textBox.BorderStyle = BorderStyle.FixedSingle;
+                textBox.Invalidate();
+            };
 
             textBox.Paint += (s, e) =>
             {
@@ -169,18 +182,6 @@ namespace EShiftManagementSystem
                 {
                     e.Graphics.DrawRectangle(pen, 0, 0, textBox.Width - 1, textBox.Height - 1);
                 }
-            };
-
-            textBox.GotFocus += (s, e) =>
-            {
-                textBox.BackColor = Color.White;
-                textBox.Invalidate();
-            };
-
-            textBox.LostFocus += (s, e) =>
-            {
-                textBox.BackColor = Color.FromArgb(249, 250, 251);
-                textBox.Invalidate();
             };
         }
 

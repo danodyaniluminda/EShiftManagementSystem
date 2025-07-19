@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,12 +28,12 @@ namespace EShiftManagementSystem
         private Label lblWelcome, lblTotalJobs, lblPendingJobs, lblCompletedJobs, lblTotalCost;
 
         //  Color Scheme
-        private readonly Color PrimaryColor = Color.FromArgb(37, 99, 235);      //  Blue
+        private readonly Color PrimaryColor = Color.FromArgb(34, 197, 94);       // Green-500
         private readonly Color SecondaryColor = Color.FromArgb(59, 130, 246);   // Light Blue
         private readonly Color AccentColor = Color.FromArgb(16, 185, 129);      // Emerald
         private readonly Color DangerColor = Color.FromArgb(239, 68, 68);       // Red
         private readonly Color WarningColor = Color.FromArgb(245, 158, 11);     // Amber
-        private readonly Color BackgroundColor = Color.FromArgb(249, 250, 251); // Light Gray
+        private readonly Color BackgroundColor = Color.FromArgb(240, 253, 244);  // Green-50
         private readonly Color SurfaceColor = Color.White;
         private readonly Color TextPrimary = Color.FromArgb(17, 24, 39);        // Dark Gray
         private readonly Color TextSecondary = Color.FromArgb(107, 114, 128);   // Medium Gray
@@ -57,9 +58,12 @@ namespace EShiftManagementSystem
             this.Text = "e-Shift - Customer Dashboard";
             this.Size = new Size(1200, 800);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.WindowState = FormWindowState.Maximized;
             this.BackColor = BackgroundColor;
             this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+
+
+            // Set form icon
+            this.Icon = CreateDashboardIcon();
 
             //  Header Panel
             var headerPanel = CreateHeaderPanel();
@@ -81,6 +85,66 @@ namespace EShiftManagementSystem
             this.Controls.Add(headerPanel);
         }
 
+        private Icon CreateDashboardIcon()
+        {
+            var bitmap = new Bitmap(32, 32);
+            using (var g = Graphics.FromImage(bitmap))
+            {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                // Draw dashboard icon
+                using (var brush = new SolidBrush(PrimaryColor))
+                {
+                    g.FillRectangle(brush, 4, 4, 10, 10);
+                    g.FillRectangle(brush, 18, 4, 10, 10);
+                    g.FillRectangle(brush, 4, 18, 10, 10);
+                    g.FillRectangle(brush, 18, 18, 10, 10);
+                }
+            }
+            return Icon.FromHandle(bitmap.GetHicon());
+        }
+
+        private Bitmap CreateTabIcon(string iconType)
+        {
+            var bitmap = new Bitmap(16, 16);
+            using (var g = Graphics.FromImage(bitmap))
+            {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                using (var brush = new SolidBrush(PrimaryColor))
+                {
+                    switch (iconType)
+                    {
+                        case "jobs":
+                            // Briefcase icon
+                            g.FillRectangle(brush, 2, 6, 12, 8);
+                            g.FillRectangle(brush, 6, 4, 4, 3);
+                            break;
+                        case "newJob":
+                            // Plus icon
+                            g.FillRectangle(brush, 7, 2, 2, 12);
+                            g.FillRectangle(brush, 2, 7, 12, 2);
+                            break;
+                        case "loads":
+                            // Truck icon
+                            g.FillRectangle(brush, 1, 8, 10, 6);
+                            g.FillRectangle(brush, 11, 10, 4, 4);
+                            g.FillEllipse(brush, 3, 12, 2, 2);
+                            g.FillEllipse(brush, 11, 12, 2, 2);
+                            break;
+                        case "profile":
+                            // User icon
+                            g.FillEllipse(brush, 5, 2, 6, 6);
+                            g.FillEllipse(brush, 3, 10, 10, 6);
+                            break;
+                    }
+                }
+            }
+            return bitmap;
+        }
+
         private Panel CreateHeaderPanel()
         {
             var headerPanel = new Panel
@@ -99,10 +163,33 @@ namespace EShiftManagementSystem
                 }
             };
 
+            // Logo/Brand section
+            var logoPanel = new Panel
+            {
+                Location = new Point(30, 0),
+                Size = new Size(60, 80),
+                BackColor = Color.Transparent
+            };
+
+            logoPanel.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                // Draw e-Shift logo
+                using (var brush = new SolidBrush(PrimaryColor))
+                {
+                    e.Graphics.FillEllipse(brush, 10, 20, 40, 40);
+                }
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    var font = new Font("Segoe UI", 16, FontStyle.Bold);
+                    e.Graphics.DrawString("eS", font, brush, 18, 28);
+                }
+            };
+
             // Welcome section
             var welcomePanel = new Panel
             {
-                Location = new Point(30, 0),
+                Location = new Point(100, 0),
                 Size = new Size(600, 80),
                 BackColor = Color.Transparent
             };
@@ -129,13 +216,14 @@ namespace EShiftManagementSystem
 
             welcomePanel.Controls.AddRange(new Control[] { lblWelcome, lblSubtitle });
 
-            // Logout button
-            btnLogout = CreateButton("Logout", DangerColor, Color.White);
+            // Logout button with icon
+            btnLogout = CreateButtonWithIcon("Logout", DangerColor, Color.White, "logout");
             btnLogout.Size = new Size(100, 35);
             btnLogout.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLogout.Click += BtnLogout_Click;
             btnLogout.Location = new Point(0, 25);
-            headerPanel.Controls.AddRange(new Control[] { welcomePanel, btnLogout });
+
+            headerPanel.Controls.AddRange(new Control[] { logoPanel, welcomePanel, btnLogout });
             return headerPanel;
         }
 
@@ -145,55 +233,61 @@ namespace EShiftManagementSystem
             {
                 Dock = DockStyle.Top,
                 Height = 120,
-                BackColor = BackgroundColor,
+                BackColor = Color.WhiteSmoke,
                 Padding = new Padding(30, 20, 30, 20)
             };
 
-            // Create stat cards
-            var cardWidth = 250;
+            var cardWidth = 270;
             var cardHeight = 80;
             var cardSpacing = 20;
 
-            var totalJobsCard = CreateStatCard("Total Jobs", "0", AccentColor, 0);
-            var pendingJobsCard = CreateStatCard("Pending Jobs", "0", WarningColor, cardWidth + cardSpacing);
-            var completedJobsCard = CreateStatCard("Completed Jobs", "0", PrimaryColor, (cardWidth + cardSpacing) * 2);
-            var totalCostCard = CreateStatCard("Total Cost", "$0.00", SecondaryColor, (cardWidth + cardSpacing) * 3);
+            Color totalJobsColor = Color.MediumSlateBlue;
+            Color pendingJobsColor = Color.OrangeRed;
+            Color completedJobsColor = Color.SeaGreen;
+            Color totalCostColor = Color.Goldenrod;
 
-            lblTotalJobs = (Label)totalJobsCard.Controls[1];
-            lblPendingJobs = (Label)pendingJobsCard.Controls[1];
-            lblCompletedJobs = (Label)completedJobsCard.Controls[1];
-            lblTotalCost = (Label)totalCostCard.Controls[1];
+            var totalJobsCard = CreateStatCard("Total Jobs", "0", totalJobsColor, 0, "📋");
+            var pendingJobsCard = CreateStatCard("Pending Jobs", "0", pendingJobsColor, cardWidth + cardSpacing, "⏳");
+            var completedJobsCard = CreateStatCard("Completed Jobs", "0", completedJobsColor, (cardWidth + cardSpacing) * 2, "✅");
+            var totalCostCard = CreateStatCard("Total Cost", "$0.00", totalCostColor, (cardWidth + cardSpacing) * 3, "💰");
+
+            lblTotalJobs = (Label)totalJobsCard.Controls[2];
+            lblPendingJobs = (Label)pendingJobsCard.Controls[2];
+            lblCompletedJobs = (Label)completedJobsCard.Controls[2];
+            lblTotalCost = (Label)totalCostCard.Controls[2];
 
             statsPanel.Controls.AddRange(new Control[] { totalJobsCard, pendingJobsCard, completedJobsCard, totalCostCard });
             return statsPanel;
         }
 
-        private Panel CreateStatCard(string title, string value, Color accentColor, int xPosition)
+
+        private Panel CreateStatCard(string title, string value, Color accentColor, int xPosition, string emoji)
         {
             var card = new Panel
             {
                 Location = new Point(xPosition, 0),
-                Size = new Size(250, 80),
-                BackColor = SurfaceColor,
+                Size = new Size(270, 80),
+                BackColor = accentColor,
                 Padding = new Padding(20, 15, 20, 15)
             };
 
-            // Add rounded corners effect
-            card.Paint += (s, e) =>
+            var lblEmoji = new Label
             {
-                using (var brush = new SolidBrush(accentColor))
-                {
-                    e.Graphics.FillRectangle(brush, 0, 0, 4, card.Height);
-                }
+                Text = emoji,
+                Font = new Font("Segoe UI", 16),
+                Location = new Point(20, 15),
+                Size = new Size(30, 30),
+                AutoSize = true,
+                ForeColor = Color.White
             };
 
             var lblTitle = new Label
             {
                 Text = title,
                 Font = new Font("Segoe UI", 9),
-                ForeColor = TextSecondary,
-                Location = new Point(20, 15),
-                Size = new Size(200, 20),
+                ForeColor = Color.WhiteSmoke,
+                Location = new Point(60, 20),
+                Size = new Size(180, 20),
                 AutoSize = true
             };
 
@@ -201,24 +295,32 @@ namespace EShiftManagementSystem
             {
                 Text = value,
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = TextPrimary,
-                Location = new Point(20, 35),
-                Size = new Size(200, 30),
+                ForeColor = Color.White,
+                Location = new Point(55, 35),
+                Size = new Size(180, 30),
                 AutoSize = true
             };
 
-            card.Controls.AddRange(new Control[] { lblTitle, lblValue });
+            card.Controls.AddRange(new Control[] { lblEmoji, lblTitle, lblValue });
             return card;
         }
+
 
         private TabControl CreateTabControl()
         {
             var tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 15),
-                Padding = new Point(20, 8)
+                Font = new Font("Segoe UI", 10),
+                Padding = new Point(25, 8),
+                ImageList = new ImageList { ImageSize = new Size(16, 16) }
             };
+
+            // Add icons to ImageList
+            tabControl.ImageList.Images.Add("jobs", CreateTabIcon("jobs"));
+            tabControl.ImageList.Images.Add("newJob", CreateTabIcon("newJob"));
+            tabControl.ImageList.Images.Add("loads", CreateTabIcon("loads"));
+            tabControl.ImageList.Images.Add("profile", CreateTabIcon("profile"));
 
             tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabControl.DrawItem += TabControl_DrawItem;
@@ -239,10 +341,19 @@ namespace EShiftManagementSystem
                 e.Graphics.FillRectangle(brush, tabRect);
             }
 
+            // Icon
+            if (tabControl.ImageList != null && tabControl.ImageList.Images.Count > e.Index)
+            {
+                var icon = tabControl.ImageList.Images[e.Index];
+                var iconRect = new Rectangle(tabRect.X + 8, tabRect.Y + (tabRect.Height - 16) / 2, 16, 16);
+                e.Graphics.DrawImage(icon, iconRect);
+            }
+
             // Text
             var textColor = e.State == DrawItemState.Selected ? Color.White : TextPrimary;
-            TextRenderer.DrawText(e.Graphics, tabPage.Text, tabControl.Font, tabRect, textColor,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            var textRect = new Rectangle(tabRect.X + 30, tabRect.Y, tabRect.Width - 30, tabRect.Height);
+            TextRenderer.DrawText(e.Graphics, tabPage.Text, tabControl.Font, textRect, textColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         }
 
         private Button CreateButton(string text, Color backgroundColor, Color textColor)
@@ -264,6 +375,43 @@ namespace EShiftManagementSystem
             return button;
         }
 
+        private Button CreateButtonWithIcon(string text, Color backgroundColor, Color textColor, string iconType)
+        {
+            var button = CreateButton(text, backgroundColor, textColor);
+
+            button.Paint += (s, e) =>
+            {
+                // Draw icon on button
+                var iconRect = new Rectangle(8, (button.Height - 16) / 2, 16, 16);
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                using (var brush = new SolidBrush(textColor))
+                {
+                    switch (iconType)
+                    {
+                        case "logout":
+                            // Door with arrow icon
+                            e.Graphics.DrawRectangle(new Pen(brush, 1), iconRect.X, iconRect.Y, 12, 16);
+                            e.Graphics.DrawLine(new Pen(brush, 2), iconRect.X + 6, iconRect.Y + 8, iconRect.X + 10, iconRect.Y + 8);
+                            e.Graphics.DrawLine(new Pen(brush, 1), iconRect.X + 8, iconRect.Y + 6, iconRect.X + 10, iconRect.Y + 8);
+                            e.Graphics.DrawLine(new Pen(brush, 1), iconRect.X + 8, iconRect.Y + 10, iconRect.X + 10, iconRect.Y + 8);
+                            break;
+                        case "refresh":
+                            // Refresh circular arrow
+                            e.Graphics.DrawArc(new Pen(brush, 2), iconRect, 45, 270);
+                            break;
+                        case "add":
+                            // Plus icon
+                            e.Graphics.DrawLine(new Pen(brush, 2), iconRect.X + 8, iconRect.Y + 2, iconRect.X + 8, iconRect.Y + 14);
+                            e.Graphics.DrawLine(new Pen(brush, 2), iconRect.X + 2, iconRect.Y + 8, iconRect.X + 14, iconRect.Y + 8);
+                            break;
+                    }
+                }
+            };
+
+            return button;
+        }
+
         private ListView CreateListView()
         {
             var listView = new ListView
@@ -272,7 +420,7 @@ namespace EShiftManagementSystem
                 View = View.Details,
                 FullRowSelect = true,
                 GridLines = true,
-                Font = new Font("Segoe UI", 13),
+                Font = new Font("Segoe UI", 9),
                 BackColor = SurfaceColor,
                 ForeColor = TextPrimary,
                 BorderStyle = BorderStyle.None,
@@ -287,7 +435,6 @@ namespace EShiftManagementSystem
             return listView;
         }
 
-
         private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
         {
             e.DrawDefault = true;
@@ -301,9 +448,34 @@ namespace EShiftManagementSystem
                 e.Graphics.FillRectangle(backgroundBrush, e.Bounds);
             }
 
+            // Add status color indicators
+            if (e.ColumnIndex == 4) // Status column for jobs
+            {
+                var statusColor = GetStatusColor(e.SubItem.Text);
+                var statusRect = new Rectangle(e.Bounds.X + 2, e.Bounds.Y + 2, 8, e.Bounds.Height - 4);
+                using (var brush = new SolidBrush(statusColor))
+                {
+                    e.Graphics.FillRectangle(brush, statusRect);
+                }
+            }
+
+            var textRect = new Rectangle(e.Bounds.X + (e.ColumnIndex == 4 ? 15 : 5), e.Bounds.Y,
+                e.Bounds.Width - (e.ColumnIndex == 4 ? 20 : 10), e.Bounds.Height);
             TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
-                new Font("Segoe UI", 9), e.Bounds, TextPrimary,
+                new Font("Segoe UI", 9), textRect, TextPrimary,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        }
+
+        private Color GetStatusColor(string status)
+        {
+            switch (status?.ToLower())
+            {
+                case "pending": return WarningColor;
+                case "in progress": return SecondaryColor;
+                case "completed": return AccentColor;
+                case "cancelled": return DangerColor;
+                default: return TextSecondary;
+            }
         }
 
         private void ListView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
@@ -314,16 +486,16 @@ namespace EShiftManagementSystem
             }
 
             TextRenderer.DrawText(e.Graphics, e.Header.Text,
-                new Font("Segoe UI", 10, FontStyle.Bold), e.Bounds, TextPrimary,
+                new Font("Segoe UI", 9, FontStyle.Bold), e.Bounds, TextPrimary,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         }
-
 
         private void CreateMyJobsTab()
         {
             tabMyJobs = new TabPage("My Jobs");
             tabMyJobs.BackColor = BackgroundColor;
             tabMyJobs.Padding = new Padding(30, 20, 30, 20);
+            tabMyJobs.ImageIndex = 0;
 
             var contentPanel = new Panel
             {
@@ -353,12 +525,12 @@ namespace EShiftManagementSystem
                 Padding = new Padding(20, 15, 20, 15)
             };
 
-            btnNewJob = CreateButton("New Job Request", AccentColor, Color.White);
+            btnNewJob = CreateButtonWithIcon("New Job Request", AccentColor, Color.White, "add");
             btnNewJob.Location = new Point(0, 0);
             btnNewJob.Size = new Size(160, 40);
             btnNewJob.Click += (s, e) => tabControl.SelectedTab = tabNewJob;
 
-            var btnRefreshJobs = CreateButton("Refresh", SecondaryColor, Color.White);
+            var btnRefreshJobs = CreateButtonWithIcon("Refresh", SecondaryColor, Color.White, "refresh");
             btnRefreshJobs.Location = new Point(180, 0);
             btnRefreshJobs.Size = new Size(100, 40);
             btnRefreshJobs.Click += async (s, e) => await LoadCustomerJobs();
@@ -376,6 +548,7 @@ namespace EShiftManagementSystem
             tabNewJob = new TabPage("New Job Request");
             tabNewJob.BackColor = BackgroundColor;
             tabNewJob.Padding = new Padding(30, 20, 30, 20);
+            tabNewJob.ImageIndex = 1;
 
             var contentPanel = new Panel
             {
@@ -385,12 +558,35 @@ namespace EShiftManagementSystem
                 AutoScroll = true
             };
 
+            // Add form header with icon
+            var headerPanel = new Panel
+            {
+                Location = new Point(0, 0),
+                Size = new Size(600, 70),
+                BackColor = Color.Transparent
+            };
+
+            headerPanel.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                // Draw form icon
+                using (var brush = new SolidBrush(AccentColor))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 10, 40, 40);
+                }
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    var font = new Font("Segoe UI", 20, FontStyle.Bold);
+                    e.Graphics.DrawString("+", font, brush, 12, 18);
+                }
+            };
+
             var lblTitle = new Label
             {
                 Text = "Create New Job Request",
                 Font = new Font("Segoe UI", 20, FontStyle.Bold),
                 ForeColor = TextPrimary,
-                Location = new Point(0, 0),
+                Location = new Point(55, 15),
                 Size = new Size(400, 35),
                 AutoSize = true
             };
@@ -400,17 +596,19 @@ namespace EShiftManagementSystem
                 Text = "Fill in the details below to submit your job request",
                 Font = new Font("Segoe UI", 10),
                 ForeColor = TextSecondary,
-                Location = new Point(0, 40),
+                Location = new Point(55, 45),
                 Size = new Size(400, 20),
                 AutoSize = true
             };
 
-            // Form fields with  styling
+            headerPanel.Controls.AddRange(new Control[] { lblTitle, lblSubtitle });
+
+            // Form fields with better styling
             var fields = new[]
             {
-                CreateFormField("Start Location", "Enter pickup location", new Point(0, 80), "txtStartLocation"),
-                CreateFormField("Destination", "Enter delivery destination", new Point(0, 160), "txtDestination"),
-                CreateFormField("Description", "Describe your shipment requirements", new Point(0, 240), "txtDescription", true)
+                CreateFormField("Start Location", "Enter pickup location", new Point(0, 90), "txtStartLocation"),
+                CreateFormField("Destination", "Enter delivery destination", new Point(0, 170), "txtDestination"),
+                CreateFormField("Description", "Describe your shipment requirements", new Point(0, 250), "txtDescription", true)
             };
 
             var lblScheduleDate = new Label
@@ -418,22 +616,22 @@ namespace EShiftManagementSystem
                 Text = "Preferred Date",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 ForeColor = TextPrimary,
-                Location = new Point(0, 380),
+                Location = new Point(0, 390),
                 Size = new Size(120, 20),
                 AutoSize = true
             };
 
             var dtpScheduleDate = new DateTimePicker
             {
-                Location = new Point(0, 405),
+                Location = new Point(0, 415),
                 Size = new Size(300, 30),
                 Font = new Font("Segoe UI", 10),
                 Name = "dtpScheduleDate"
             };
             dtpScheduleDate.MinDate = DateTime.Now;
 
-            var btnSubmitJob = CreateButton("Submit Job Request", PrimaryColor, Color.White);
-            btnSubmitJob.Location = new Point(0, 460);
+            var btnSubmitJob = CreateButtonWithIcon("Submit Job Request", PrimaryColor, Color.White, "add");
+            btnSubmitJob.Location = new Point(0, 470);
             btnSubmitJob.Size = new Size(180, 45);
             btnSubmitJob.Click += async (s, e) => await SubmitJobRequest(
                 (TextBox)contentPanel.Controls.Find("txtStartLocation", true)[0],
@@ -441,7 +639,7 @@ namespace EShiftManagementSystem
                 (TextBox)contentPanel.Controls.Find("txtDescription", true)[0],
                 dtpScheduleDate);
 
-            var controls = new List<Control> { lblTitle, lblSubtitle };
+            var controls = new List<Control> { headerPanel };
             controls.AddRange(fields.SelectMany(f => f));
             controls.AddRange(new Control[] { lblScheduleDate, dtpScheduleDate, btnSubmitJob });
 
@@ -502,6 +700,7 @@ namespace EShiftManagementSystem
             tabMyLoads = new TabPage("My Loads");
             tabMyLoads.BackColor = BackgroundColor;
             tabMyLoads.Padding = new Padding(30, 20, 30, 20);
+            tabMyLoads.ImageIndex = 2;
 
             var contentPanel = new Panel
             {
@@ -532,7 +731,7 @@ namespace EShiftManagementSystem
                 Padding = new Padding(20, 15, 20, 15)
             };
 
-            var btnRefreshLoads = CreateButton("Refresh", SecondaryColor, Color.White);
+            var btnRefreshLoads = CreateButtonWithIcon("Refresh", SecondaryColor, Color.White, "refresh");
             btnRefreshLoads.Location = new Point(0, 0);
             btnRefreshLoads.Size = new Size(100, 40);
             btnRefreshLoads.Click += async (s, e) => await LoadCustomerLoads();
@@ -551,6 +750,7 @@ namespace EShiftManagementSystem
             tabProfile = new TabPage("My Profile");
             tabProfile.BackColor = BackgroundColor;
             tabProfile.Padding = new Padding(30, 20, 30, 20);
+            tabProfile.ImageIndex = 3;
 
             var contentPanel = new Panel
             {
@@ -580,7 +780,6 @@ namespace EShiftManagementSystem
                 AutoSize = true
             };
 
-            // Profile form fields
             var profileFields = new[]
             {
                 CreateProfileField("First Name", _currentCustomer.FirstName, new Point(0, 80), "txtFirstName"),

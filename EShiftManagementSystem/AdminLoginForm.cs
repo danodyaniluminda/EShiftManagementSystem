@@ -162,49 +162,50 @@ namespace EShiftManagementSystem
                 Text = "Admin Sign In",
                 Font = new Font("Segoe UI", 28, FontStyle.Bold),
                 ForeColor = Color.FromArgb(31, 41, 55),
-                Location = new Point(60, 80),
-                Size = new Size(300, 40),
-                TextAlign = ContentAlignment.MiddleLeft
+                Location = new Point(60, 60),
+                AutoSize = true
             };
 
-            // Username section
+            // Username label
             var lblUsername = new Label
             {
                 Text = "Administrator Username",
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.FromArgb(75, 85, 99),
-                Location = new Point(60, 160),
-                Size = new Size(200, 20)
+                Location = new Point(60, 140),
+                AutoSize = true
             };
 
             txtUsername = new TextBox
             {
-                Location = new Point(60, 185),
+                Location = new Point(60, 170),
                 Size = new Size(360, 35),
                 Font = new Font("Segoe UI", 12),
-                BorderStyle = BorderStyle.None,
-                BackColor = Color.FromArgb(249, 250, 251)
+                BorderStyle = BorderStyle.FixedSingle, 
+                ForeColor = Color.Black, 
+                BackColor = Color.White 
             };
             AddTextBoxStyling(txtUsername, "Enter admin username");
 
-            // Password section
+            // Password label
             var lblPassword = new Label
             {
                 Text = "Administrator Password",
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.FromArgb(75, 85, 99),
-                Location = new Point(60, 260),
-                Size = new Size(200, 20)
+                Location = new Point(60, 230),
+                AutoSize = true
             };
 
             txtPassword = new TextBox
             {
-                Location = new Point(60, 285),
+                Location = new Point(60, 260),
                 Size = new Size(360, 35),
                 Font = new Font("Segoe UI", 12),
-                BorderStyle = BorderStyle.None,
+                BorderStyle = BorderStyle.FixedSingle,
                 UseSystemPasswordChar = true,
-                BackColor = Color.FromArgb(249, 250, 251)
+                ForeColor = Color.Black,
+                BackColor = Color.White
             };
             AddTextBoxStyling(txtPassword, "Enter admin password");
 
@@ -212,7 +213,7 @@ namespace EShiftManagementSystem
             btnLogin = new Button
             {
                 Text = "Sign In as Admin",
-                Location = new Point(60, 360),
+                Location = new Point(60, 330),
                 Size = new Size(360, 45),
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = Color.White,
@@ -229,7 +230,7 @@ namespace EShiftManagementSystem
             btnBack = new Button
             {
                 Text = "← Back to Home",
-                Location = new Point(60, 420),
+                Location = new Point(60, 390),
                 Size = new Size(360, 45),
                 Font = new Font("Segoe UI", 12, FontStyle.Regular),
                 ForeColor = Color.FromArgb(75, 85, 99),
@@ -243,11 +244,14 @@ namespace EShiftManagementSystem
             AddButtonHoverEffect(btnBack, Color.FromArgb(249, 250, 251));
             AddRoundedCorners(btnBack, 8);
 
+            panelRight.Controls.Clear();
             panelRight.Controls.AddRange(new Control[] {
-                lblLoginTitle, lblUsername, txtUsername, lblPassword, txtPassword,
-                btnLogin, btnBack
-            });
+        lblLoginTitle, lblUsername, txtUsername,
+        lblPassword, txtPassword,
+        btnLogin, btnBack
+    });
         }
+
 
         private void CreateCloseButton()
         {

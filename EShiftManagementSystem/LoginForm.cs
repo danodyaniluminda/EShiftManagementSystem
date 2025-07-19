@@ -20,6 +20,7 @@ namespace EShiftManagementSystem
         private Button btnUserLogin;
         private PictureBox pbLogo;
         private Panel panelMain;
+        private Image backgroundImage;
 
         public LoginForm(DataManager dataManager, EShiftDbContext context)
         {
@@ -29,145 +30,164 @@ namespace EShiftManagementSystem
             _context = context;
         }
 
+
+
         private void SetupCustomControls()
         {
             this.Text = "e-Shift - Welcome";
-            this.Size = new Size(600, 500);
+            this.Size = new Size(800, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.MaximizeBox = false;
-            this.BackColor = Color.FromArgb(240, 244, 248);
+            this.BackColor = Color.FromArgb(15, 23, 42);
+            backgroundImage = Properties.Resources.background;
+            this.BackgroundImageLayout = ImageLayout.Stretch;
 
-            // Handle form closing
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+
             this.FormClosing += MainEntryForm_FormClosing;
 
-            // Create main panel
             panelMain = new Panel
             {
-                Size = new Size(580, 480),
-                Location = new Point(10, 10),
-                BackColor = Color.White,
+                Size = new Size(450, 500),
+                Location = new Point((this.Width - 450) / 2, (this.Height - 500) / 2),
+                BackColor = Color.FromArgb(90, 255, 255, 255),
                 BorderStyle = BorderStyle.None
             };
-            AddRoundedCorners(panelMain, 15);
-            AddShadow(panelMain);
+            AddRoundedCorners(panelMain, 20);
+            AddGlassmorphismEffect(panelMain);
 
             CreateMainContent();
 
-            // Add main panel to form
             this.Controls.Add(panelMain);
 
-            // Add close button
             CreateCloseButton();
         }
 
+
         private void CreateMainContent()
         {
-            // Company logo
+            // Company logo with modern gradient
             pbLogo = new PictureBox
             {
-                Size = new Size(100, 100),
-                Location = new Point(240, 60), // Moved up to prevent overlap
-                BackColor = Color.FromArgb(59, 130, 246),
+                Size = new Size(80, 80),
+                Location = new Point(185, 40),
+                BackColor = Color.Transparent,
                 BorderStyle = BorderStyle.None
             };
-            AddRoundedCorners(pbLogo, 50);
 
-            // Create a simple logo design
+            // Create a modern gradient logo
             pbLogo.Paint += (s, e) =>
             {
-                using (var brush = new SolidBrush(Color.FromArgb(59, 130, 246)))
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Create gradient brush
+                using (var gradientBrush = new LinearGradientBrush(
+                    new Rectangle(0, 0, 80, 80),
+                    Color.FromArgb(79, 70, 229), // Indigo
+                    Color.FromArgb(147, 51, 234), // Purple
+                    LinearGradientMode.Vertical))
                 {
-                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                    e.Graphics.FillEllipse(brush, 0, 0, 100, 100);
-                    using (var font = new Font("Segoe UI", 24, FontStyle.Bold))
-                    using (var textBrush = new SolidBrush(Color.White))
-                    {
-                        var textSize = e.Graphics.MeasureString("eS", font);
-                        float x = (100 - textSize.Width) / 2;
-                        float y = (100 - textSize.Height) / 2;
-                        e.Graphics.DrawString("eS", font, textBrush, x, y);
-                    }
+                    e.Graphics.FillEllipse(gradientBrush, 0, 0, 80, 80);
+                }
+
+                // Add inner glow effect
+                using (var glowBrush = new LinearGradientBrush(
+                    new Rectangle(10, 10, 60, 60),
+                    Color.FromArgb(100, 255, 255, 255),
+                    Color.FromArgb(30, 255, 255, 255),
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillEllipse(glowBrush, 10, 10, 60, 60);
+                }
+
+                // Logo text
+                using (var font = new Font("Segoe UI", 20, FontStyle.Bold))
+                using (var textBrush = new SolidBrush(Color.White))
+                {
+                    var textSize = e.Graphics.MeasureString("eS", font);
+                    float x = (80 - textSize.Width) / 2;
+                    float y = (80 - textSize.Height) / 2;
+                    e.Graphics.DrawString("eS", font, textBrush, x, y);
                 }
             };
 
-            // Title
+            // Title with modern styling
             var lblTitle = new Label
             {
                 Text = "e-Shift",
-                Font = new Font("Segoe UI", 36, FontStyle.Bold),
-                ForeColor = Color.FromArgb(37, 99, 235), // Brighter blue
+                Font = new Font("Segoe UI", 32, FontStyle.Bold),
+                ForeColor = Color.FromArgb(30, 41, 59), // Dark slate
                 AutoSize = true,
-                BackColor = Color.Transparent, // Ensure transparent background
+                BackColor = Color.Transparent,
                 TextAlign = ContentAlignment.MiddleCenter
             };
-            // Calculate proper center position for title
-            lblTitle.Location = new Point((panelMain.Width - lblTitle.PreferredWidth) / 2, 180);
+            lblTitle.Location = new Point((panelMain.Width - lblTitle.PreferredWidth) / 2, 140);
 
-            // Subtitle
+            // Subtitle with gradient effect
             var lblSubtitle = new Label
             {
                 Text = "Transport Management System",
-                Font = new Font("Segoe UI", 16, FontStyle.Regular),
-                ForeColor = Color.FromArgb(59, 130, 246),
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 0, 0), // Slate
                 AutoSize = true,
-                BackColor = Color.Transparent, // Ensure transparent background
+                BackColor = Color.Transparent,
                 TextAlign = ContentAlignment.MiddleCenter
             };
-            // Calculate proper center position for subtitle
-            lblSubtitle.Location = new Point((panelMain.Width - lblSubtitle.PreferredWidth) / 2, 240);
+            lblSubtitle.Location = new Point((panelMain.Width - lblSubtitle.PreferredWidth) / 2, 200);
 
             // Welcome message
             var lblWelcome = new Label
             {
                 Text = "Please select your account type to continue",
-                Font = new Font("Segoe UI", 12, FontStyle.Regular),
-                ForeColor = Color.FromArgb(99, 102, 241),
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 0, 0), // Slate
                 AutoSize = true,
-                BackColor = Color.Transparent, // Ensure transparent background
+                BackColor = Color.Transparent,
                 TextAlign = ContentAlignment.MiddleCenter
             };
-            // Calculate proper center position for welcome message
-            lblWelcome.Location = new Point((panelMain.Width - lblWelcome.PreferredWidth) / 2, 280);
+            lblWelcome.Location = new Point((panelMain.Width - lblWelcome.PreferredWidth) / 2, 230);
 
-            // Admin Login button (Red)
+            // Admin Login button with modern gradient
             btnAdminLogin = new Button
             {
                 Text = "👤 Admin Login",
-                Location = new Point(110, 340),
-                Size = new Size(160, 50),
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                Location = new Point(30, 300),
+                Size = new Size(170, 50),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.White,
-                BackColor = Color.FromArgb(220, 38, 38), // Red
+                BackColor = Color.FromArgb(239, 68, 68), // Red
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             btnAdminLogin.FlatAppearance.BorderSize = 0;
             btnAdminLogin.Click += BtnAdminLogin_Click;
-            AddButtonHoverEffect(btnAdminLogin, Color.FromArgb(185, 28, 28)); // Darker red on hover
-            AddRoundedCorners(btnAdminLogin, 8);
+            AddModernButtonEffect(btnAdminLogin, Color.FromArgb(220, 38, 38), Color.FromArgb(185, 28, 28));
+            AddRoundedCorners(btnAdminLogin, 12);
 
-            // User Login button (Green)
+            // User Login button with modern gradient
             btnUserLogin = new Button
             {
-                Text = "🚗 User Login",
-                Location = new Point(310, 340),
-                Size = new Size(160, 50),
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                Text = "🚗 Customer Login",
+                Location = new Point(245, 300),
+                Size = new Size(170, 50),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.White,
-                BackColor = Color.FromArgb(22, 163, 74), // Green
+                BackColor = Color.FromArgb(34, 197, 94), // Green
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             btnUserLogin.FlatAppearance.BorderSize = 0;
             btnUserLogin.Click += BtnUserLogin_Click;
-            AddButtonHoverEffect(btnUserLogin, Color.FromArgb(21, 128, 61)); // Darker green on hover
-            AddRoundedCorners(btnUserLogin, 8);
+            AddModernButtonEffect(btnUserLogin, Color.FromArgb(22, 163, 74), Color.FromArgb(21, 128, 61));
+            AddRoundedCorners(btnUserLogin, 12);
 
-            // Add controls to panel in proper order (back to front)
+
+
+            // Add controls to panel
             panelMain.Controls.AddRange(new Control[] {
-        pbLogo, lblTitle, lblSubtitle, lblWelcome, btnAdminLogin, btnUserLogin
-    });
+                pbLogo, lblTitle, lblSubtitle, lblWelcome, btnAdminLogin, btnUserLogin
+            });
         }
 
         private void CreateCloseButton()
@@ -175,17 +195,18 @@ namespace EShiftManagementSystem
             var btnClose = new Button
             {
                 Text = "×",
-                Location = new Point(panelMain.Width - 40, 10),
+                Location = new Point(panelMain.Width - 45, 15),
                 Size = new Size(30, 30),
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.FromArgb(107, 114, 128),
-                BackColor = Color.Transparent,
+                BackColor = Color.FromArgb(50, 255, 255, 255), // Semi-transparent white instead of transparent
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             btnClose.FlatAppearance.BorderSize = 0;
             btnClose.Click += BtnClose_Click;
-            AddButtonHoverEffect(btnClose, Color.FromArgb(239, 68, 68));
+            AddRoundedCorners(btnClose, 15); // Make it circular
+            AddCloseButtonHoverEffect(btnClose);
 
             panelMain.Controls.Add(btnClose);
             btnClose.BringToFront();
@@ -220,18 +241,40 @@ namespace EShiftManagementSystem
             }
         }
 
-        private void AddButtonHoverEffect(Button button, Color hoverColor)
+        private void AddModernButtonEffect(Button button, Color originalColor, Color hoverColor)
         {
-            var originalColor = button.BackColor;
             var originalForeColor = button.ForeColor;
 
             button.MouseEnter += (s, e) =>
             {
                 button.BackColor = hoverColor;
-                if (button == btnUserLogin)
-                {
-                    button.ForeColor = Color.White;
-                }
+                button.ForeColor = Color.White;
+
+                // Add subtle scale effect
+                button.Size = new Size(button.Width + 2, button.Height + 2);
+                button.Location = new Point(button.Location.X - 1, button.Location.Y - 1);
+            };
+
+            button.MouseLeave += (s, e) =>
+            {
+                button.BackColor = originalColor;
+                button.ForeColor = originalForeColor;
+
+                // Reset scale
+                button.Size = new Size(button.Width - 2, button.Height - 2);
+                button.Location = new Point(button.Location.X + 1, button.Location.Y + 1);
+            };
+        }
+
+        private void AddCloseButtonHoverEffect(Button button)
+        {
+            var originalColor = Color.FromArgb(50, 255, 255, 255);
+            var originalForeColor = button.ForeColor;
+
+            button.MouseEnter += (s, e) =>
+            {
+                button.BackColor = Color.FromArgb(239, 68, 68);
+                button.ForeColor = Color.White;
             };
 
             button.MouseLeave += (s, e) =>
@@ -257,13 +300,37 @@ namespace EShiftManagementSystem
             return new Region(path);
         }
 
-        private void AddShadow(Control control)
+        private void AddGlassmorphismEffect(Control control)
         {
             control.Paint += (s, e) =>
             {
-                using (var shadowBrush = new SolidBrush(Color.FromArgb(30, 0, 0, 0)))
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Create glass effect with blur simulation
+                using (var brush = new LinearGradientBrush(
+                    control.ClientRectangle,
+                    Color.FromArgb(40, 255, 255, 255),
+                    Color.FromArgb(20, 255, 255, 255),
+                    LinearGradientMode.Vertical))
                 {
-                    e.Graphics.FillRectangle(shadowBrush, 5, 5, control.Width, control.Height);
+                    e.Graphics.FillRectangle(brush, control.ClientRectangle);
+                }
+
+                // Add border
+                using (var pen = new Pen(Color.FromArgb(60, 255, 255, 255), 1))
+                {
+                    var rect = new Rectangle(0, 0, control.Width - 1, control.Height - 1);
+                    e.Graphics.DrawRectangle(pen, rect);
+                }
+
+                // Add subtle inner glow
+                using (var innerBrush = new LinearGradientBrush(
+                    new Rectangle(1, 1, control.Width - 2, 30),
+                    Color.FromArgb(50, 255, 255, 255),
+                    Color.FromArgb(10, 255, 255, 255),
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(innerBrush, 1, 1, control.Width - 2, 30);
                 }
             };
         }
@@ -287,14 +354,30 @@ namespace EShiftManagementSystem
         {
             base.OnPaint(e);
 
-            using (var brush = new LinearGradientBrush(
-                this.ClientRectangle,
-                Color.FromArgb(240, 244, 248),
-                Color.FromArgb(226, 232, 240),
-                LinearGradientMode.Vertical))
+            if (backgroundImage != null)
             {
-                e.Graphics.FillRectangle(brush, this.ClientRectangle);
+                // Draw background image with proper scaling
+                e.Graphics.DrawImage(backgroundImage, 0, 0, this.Width, this.Height);
+
+                // Add dark overlay for better contrast
+                using (var overlay = new SolidBrush(Color.FromArgb(80, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(overlay, this.ClientRectangle);
+                }
+            }
+            else
+            {
+                // Fallback gradient background
+                using (var brush = new LinearGradientBrush(
+                    this.ClientRectangle,
+                    Color.FromArgb(15, 23, 42),   // Dark slate
+                    Color.FromArgb(30, 41, 59),   // Lighter slate
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(brush, this.ClientRectangle);
+                }
             }
         }
+
     }
 }
